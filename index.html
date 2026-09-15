@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>LYRIC VIEW</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="lyrics-core.js"></script>
+  <script defer src="i18n.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <span class="brand">LYRIC VIEW</span>
+      <div class="connection" id="connection" role="status"><i aria-hidden="true"></i><span id="connection-label">Connecting…</span></div>
+    </header>
+
+    <aside class="sidebar" aria-label="Lyrics settings" data-i18n-aria-label="歌词设置">
+      <details class="session-settings" id="session-settings" open>
+        <summary class="settings-summary" data-i18n="歌词与时间设置">Lyrics &amp; settings</summary>
+        <div class="settings-content">
+          <section class="settings-section language-section" aria-labelledby="language-heading">
+            <h2 class="section-label" id="language-heading"><label for="language-select" data-i18n="界面语言">Language</label></h2>
+            <select id="language-select" class="language-select">
+              <option value="en" lang="en">English</option>
+              <option value="zh-CN" lang="zh-CN">中文</option>
+            </select>
+          </section>
+          <section class="settings-section" aria-labelledby="file-heading">
+            <h2 class="section-label" id="file-heading" data-i18n="歌词文件">Lyrics file</h2>
+            <div class="settings-card">
+              <button class="import-button" id="import-button" data-i18n="导入歌词…">Import lyrics…</button>
+              <input id="file-input" type="file" accept=".lrc,.txt,text/plain" hidden>
+              <p class="file-note" id="file-note">Choose an LRC file, or drop it into this window.</p>
+              <button class="text-button" id="sample-button" data-i18n="使用示例歌词">Use demo lyrics</button>
+            </div>
+          </section>
+
+          <section class="settings-section" aria-labelledby="timing-heading">
+            <h2 class="section-label" id="timing-heading" data-i18n="时间对齐">Timing</h2>
+            <div class="settings-card">
+              <label class="field-label" for="song-start"><span data-i18n="伴奏起点">Track start</span> <span data-i18n="工程时间">Project time</span></label>
+              <div class="number-field"><input id="song-start" type="number" step="0.1" value="0" aria-describedby="offset-help"><span data-i18n="秒">s</span></div>
+              <p class="hint" id="offset-help" data-i18n="伴奏从第 10 秒开始，就填 10。正数让歌词整体延后。">If the backing track starts at 10 seconds, enter 10. Positive values delay the lyrics.</p>
+              <button class="outline-button" id="align-button" disabled data-i18n="使用 REAPER 当前位置">Use REAPER position</button>
+              <div class="timing-detail"><span data-i18n="歌词时间">Lyric time</span><output id="lyric-time" aria-live="off">00:00.00</output></div>
+            </div>
+          </section>
+
+          <details class="help">
+            <summary data-i18n="连接 REAPER">Connect to REAPER</summary>
+            <ol>
+              <li data-i18n="在 REAPER 设置中添加 Web browser interface。">Add a Web browser interface in REAPER preferences.</li>
+              <li data-i18n="点击 User pages，将整个项目文件夹放入打开的目录。">Click User pages and copy the entire project folder into that directory.</li>
+              <li><span data-i18n="启用端口">Enable port</span> <span id="server-port">9090</span><span data-i18n="，点击 OK 保存并关闭设置窗口，通过下方地址打开。">, click OK to save and close preferences, then open the address below.</span></li>
+            </ol>
+            <a class="server-link" id="server-link" href="http://127.0.0.1:9090/reaper-lyrics/index.html">http://127.0.0.1:9090/reaper-lyrics/index.html</a>
+            <p data-i18n="旧版 REAPER 请避免连续点击 Apply settings → OK。若报端口错误，关闭设置窗口后再检查连接。">On older REAPER versions, avoid Apply settings followed by OK. If a port error appears, close preferences before checking the connection.</p>
+            <p data-i18n="完整说明见 README.md。音频由 REAPER 播放。">See README.md for full instructions. Audio plays in REAPER.</p>
+          </details>
+          <details class="help recording-help">
+            <summary data-i18n="如何录制">How to record</summary>
+            <p id="record-help" data-i18n="先在 REAPER 中选择录音轨，设置输入，并开启该轨的录音预备（Record Arm）。仅选中轨道还不够。">In REAPER, choose a recording track, set its input, and enable Record Arm. Selecting the track alone is not enough.</p>
+            <p data-i18n="网页会录制所有已预备的轨道；请自行关闭不需要录制轨道的预备。结束录制请点击停止，录音保存按 REAPER 提示处理。">REAPER records all armed tracks. Disarm any tracks you do not want to record. Click Stop to finish, then follow REAPER’s prompts to save the recording.</p>
+          </details>
+          <p class="privacy-note" data-i18n="歌词仅保存在此浏览器">Lyrics are saved only in this browser</p>
+        </div>
+      </details>
+    </aside>
+
+    <main class="main">
+      <div class="view-toolbar">
+        <div class="song-heading">
+          <h1 id="song-title">Lyrics</h1>
+          <p class="artist" id="artist">Synced with REAPER</p>
+        </div>
+        <button id="follow-button" class="follow-button" aria-pressed="true"><span class="follow-indicator" aria-hidden="true"></span><span id="follow-label">Follow</span></button>
+      </div>
+      <div class="notice" id="notice" role="status" hidden></div>
+      <div class="lyric-stage" id="lyric-stage" tabindex="0" aria-label="Lyrics, scroll to browse" data-i18n-aria-label="歌词，可滚动浏览">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h2 data-i18n="添加歌词，开始跟随">Add lyrics to follow along</h2>
+          <p><span data-i18n="导入带时间戳的 LRC 歌词，">Import a timestamped LRC file,</span><br><span data-i18n="在 REAPER 中定位或播放即可同步。">then seek or play in REAPER to sync.</span></p>
+          <span class="empty-example">[00:12.50] Start from this line</span>
+        </div>
+        <div id="lyrics" class="lyrics" aria-label="Lyrics list" data-i18n-aria-label="歌词列表" hidden></div>
+      </div>
+      <div class="stage-caption"><span id="stage-caption">Play in REAPER to follow the lyrics here.</span><span id="line-position">— / —</span></div>
+    </main>
+
+    <footer class="transport" aria-label="Transport controls" data-i18n-aria-label="播放控制">
+      <div class="transport-status"><span class="state-dot" id="state-dot" aria-hidden="true"></span><div><strong id="play-state">Waiting for REAPER</strong><small id="repeat-state">REAPER</small></div></div>
+      <div class="transport-controls">
+        <button id="stop-button" class="icon-button" aria-label="Stop" data-i18n-aria-label="停止" title="Stop" data-i18n-title="停止" disabled><span aria-hidden="true">■</span></button>
+        <button id="play-button" class="play-button" disabled><span id="play-icon" aria-hidden="true">▶</span><span id="play-label">Play</span></button>
+        <button id="record-button" class="record-button" aria-describedby="record-help" title="Choose a recording track and enable Record Arm in REAPER first" data-i18n-title="请先在 REAPER 中选择录音轨并开启录音预备" disabled><span class="record-icon" aria-hidden="true"></span><span id="record-label">Record</span></button>
+      </div>
+      <div class="project-clock"><span data-i18n="工程时间">Project time</span><output id="project-time" aria-live="off">00:00.00</output></div>
+    </footer>
+  </div>
+</body>
+</html>
