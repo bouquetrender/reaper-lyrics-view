@@ -1,5 +1,7 @@
 # LYRIC VIEW
 
+<img width="100%" height="auto" src="https://github.com/user-attachments/assets/48e02922-51ea-45e4-93e5-5829838c430c" />
+
 **English** | [简体中文](README.zh-CN.md)
 
 A lightweight lyrics panel that synchronizes LRC lyrics through REAPER’s built-in web server. No build step or additional backend is needed. REAPER handles audio playback and recording.
